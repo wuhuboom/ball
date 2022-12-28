@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oxo.ball.mapper.BallPlayerMapper">
+    <select id="listPage" parameterType="map" resultType="com.oxo.ball.bean.dao.BallPlayer">
+        select
+          p.*
+        from
+          ball_player p
+        left join
+          ball_logger_recharge g
+        on
+          p.id = g.player_id and g.status = 3
+        left join
+          ball_logger_withdrawal w
+        on
+          p.id = w.player_id and w.status=4
+        where
+          p.account_type = 2
+        and
+          p.first_top_up > 0
+        <if test="query.begin">
+            and g.created_at >= #{query.begin}
+        </if>
+        <if test="query.end">
+            <![CDATA[ and g.created_at <= #{query.end} ]]>
+        </if>
+        <if test="query.beginRank and query.endRank">
+            and p.vip_rank between #{query.beginRank} and #{query.endRand}
+        </if>
+        and
+          g.super_tree like '${query.superTree}'
+        group by p.id
+    </select>
+    <select id="listPageBet" parameterType="map" resultType="com.oxo.ball.bean.dao.BallPlayer">
+        select
+          p.*,count(g.id) bcount
+        from
+          ball_player p
+        left join
+          ball_bet g
+        on
+          p.id = g.player_id
+        where
+          p.account_type = 2
+        and
+          p.first_top_up > 0
+        and
+          g.status = 1
+        and
+          g.status_settlement=1
+        <if test="query.begin">
+            and g.created_at >= #{query.begin}
+        </if>
+        <if test="query.end">
+            <![CDATA[ and g.created_at <= #{query.end} ]]>
+        </if>
+        <if test="query.beginRank and query.endRank">
+            and p.vip_rank between #{query.beginRank} and #{query.endRand}
+        </if>
+        and
+          g.super_tree like '${query.superTree}'
+        GROUP BY p.id
+        <if test="query.betCount">
+            having bcount > #{query.betCount}
+        </if>
+    </select>
+    <select id="listPageBetAndRecharge" parameterType="map" resultType="com.oxo.ball.bean.dao.BallPlayer">
+        select
+          p.*,count(b.id) as bcount,sum(r.money_sys) as cumulativeTopUp,sum(w.money) as cumulativeReflect
+        from
+          ball_player p
+        left join
+         ball_logger_recharge r
+        on
+         p.id = r.player_id and r.status = 3 and r.super_tree like '${query.superTree}'
+        <if test="query.rbegin">
+            and r.created_at >= #{query.rbegin}
+        </if>
+        <if test="query.rend">
+            <![CDATA[ and r.created_at <= #{query.rend} ]]>
+        </if>
+        left join
+          ball_bet b
+        on
+          p.id = b.player_id and b.status = 1 and b.status_settlement=1 and b.super_tree like '${query.superTree}'
+        <if test="query.bbegin">
+            and b.created_at >= #{query.bbegin}
+        </if>
+        <if test="query.bend">
+            <![CDATA[ and b.created_at <= #{query.bend} ]]>
+        </if>
+        left join
+          ball_logger_withdrawal w
+        on
+          p.id = w.player_id and w.status=4
+        where
+          p.account_type = 2
+        and
+          p.first_top_up > 0
+        <if test="query.beginRank and query.endRank">
+            and p.vip_rank between #{query.beginRank} and #{query.endRand}
+        </if>
+        GROUP BY p.id
+        <if test="query.betCount">
+            having bcount > #{query.betCount}
+        </if>
+    </select>
+    <select id="standard" parameterType="com.oxo.ball.bean.dto.req.report.ReportStandardRequest" resultType="int">
+        SELECT
+            count(id) count
+        FROM
+            ball_player
+        WHERE
+            account_type = 2
+        AND cumulative_top_up > #{query.recharge}
+        AND super_tree REGEXP #{query.regx}
+    </select>
+    <select id="standardGrouop" parameterType="com.oxo.ball.bean.dto.req.report.ReportStandardRequest" resultType="int">
+        SELECT
+            count(id) count
+        FROM
+            ball_player
+        WHERE
+            account_type = 2
+        AND super_tree REGEXP #{query.regx}
+    </select>
+</mapper>

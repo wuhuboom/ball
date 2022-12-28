@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oxo.ball.mapper.BallLoggerWithdrawalMapper">
+    <select id="listPage" parameterType="map" resultType="com.oxo.ball.bean.dao.BallLoggerWithdrawal">
+      select
+        w.*,p.top_up_times top_up_times,
+        p.cumulative_top_up cumulative_top_up,p.artificial_add artificial_add,
+        p.cumulative_reflect cumulative_reflect
+      from
+        ball_logger_withdrawal w
+      left join
+        ball_player p
+      on
+        w.player_id = p.id
+      <where>
+        <if test="query.status">
+          and w.status = #{query.status}
+        </if>
+        <if test="query.type">
+          and w.type = #{query.type}
+        </if>
+        <if test="query.behalf_no">
+          and w.behalf_no = #{query.behalf_no}
+        </if>
+        <if test="query.order_no">
+          and w.order_no = #{query.order_no}
+        </if>
+        <if test="query.account_type">
+          and w.account_type = #{query.account_type}
+        </if>
+        <if test="query.player_id">
+          and w.player_id = #{query.player_id}
+        </if>
+        <if test="query.player_name">
+          and w.player_name = #{query.player_name}
+        </if>
+        <if test="query.treeType==1">
+          and w.super_tree = #{query.super_tree}
+        </if>
+        <if test="query.created_at">
+          and w.created_at &lt; #{query.created_at}
+        </if>
+        <if test="query.treeType==2">
+          <bind name="super_tree" value="'\''+query.super_tree+'\''"/>
+          and w.super_tree like ${super_tree}
+        </if>
+      </where>
+      order by w.id desc
+    </select>
+    <select id="listPageStatis" parameterType="map" resultType="com.oxo.ball.bean.dao.BallLoggerWithdrawal">
+      select
+        sum(money) money,
+        sum(commission)commission,
+        sum(usdt_money) usdt_money,
+        sum(top_up_times) top_up_times,
+        sum(cumulative_top_up) cumulative_top_up,
+        sum(artificial_add) artificial_add,
+        sum(cumulative_reflect) cumulative_reflect
+      from (
+        select
+          1 id,
+          sum(w.money) money,
+          sum(w.commission)commission,
+          sum(w.usdt_money) usdt_money,
+          0 top_up_times,
+          0 cumulative_top_up,
+          0 artificial_add,
+          0 cumulative_reflect
+        from
+          ball_logger_withdrawal w
+        left join
+          ball_player p
+        on
+          w.player_id = p.id
+      <where>
+        <if test="query.status">
+          and w.status = #{query.status}
+        </if>
+        <if test="query.type">
+          and w.type = #{query.type}
+        </if>
+        <if test="query.behalf_no">
+          and w.behalf_no = #{query.behalf_no}
+        </if>
+        <if test="query.order_no">
+          and w.order_no = #{query.order_no}
+        </if>
+        <if test="query.account_type">
+          and w.account_type = #{query.account_type}
+        </if>
+        <if test="query.player_id">
+          and w.player_id = #{query.player_id}
+        </if>
+        <if test="query.player_name">
+          and w.player_name = #{query.player_name}
+        </if>
+        <if test="query.treeType==1">
+          and w.super_tree = #{query.super_tree}
+        </if>
+        <if test="query.treeType==2">
+          <bind name="super_tree" value="'\''+query.super_tree+'\''"/>
+          and w.super_tree like ${super_tree}
+        </if>
+      </where>
+        UNION ALL
+        select
+        1 id,
+        0 money,
+        0 commission,
+        0 usdt_money,
+        sum(p.top_up_times) top_up_times,
+        sum(p.cumulative_top_up) cumulative_top_up,
+        sum(p.artificial_add) artificial_add,
+        sum(p.cumulative_reflect) cumulative_reflect
+        from
+        ball_player p
+      <where>
+        EXISTS (
+        select 1 from ball_logger_withdrawal w where p.id=w.player_id
+          <if test="query.status">
+            and w.status = #{query.status}
+          </if>
+          <if test="query.type">
+            and w.type = #{query.type}
+          </if>
+          <if test="query.behalf_no">
+            and w.behalf_no = #{query.behalf_no}
+          </if>
+          <if test="query.order_no">
+            and w.order_no = #{query.order_no}
+          </if>
+          <if test="query.account_type">
+            and w.account_type = #{query.account_type}
+          </if>
+          <if test="query.player_id">
+            and w.player_id = #{query.player_id}
+          </if>
+          <if test="query.player_name">
+            and w.player_name = #{query.player_name}
+          </if>
+          <if test="query.treeType==1">
+            and w.super_tree = #{query.super_tree}
+          </if>
+          <if test="query.treeType==2">
+            <bind name="super_tree" value="'\''+query.super_tree+'\''"/>
+            and w.super_tree like ${super_tree}
+          </if>
+        )
+      </where>
+        ) t
+    </select>
+</mapper>

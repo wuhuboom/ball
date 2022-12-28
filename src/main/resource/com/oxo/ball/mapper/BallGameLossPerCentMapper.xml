@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oxo.ball.mapper.BallGameLossPerCentMapper">
+    <insert id="batchInsert" >
+        insert ignore into ball_game_loss_per_cent (
+        game_id,
+        score_home,
+        score_away,
+        game_type,
+        loss_per_cent,
+        anti_per_cent,
+        even,
+        status
+        )
+        values
+        <foreach collection="lossPerCents" item="item" index="index" separator=",">
+            (#{item.gameId},#{item.scoreHome},#{item.scoreAway},#{item.gameType},#{item.lossPerCent},#{item.antiPerCent},2,1)
+        </foreach>
+    </insert>
+    <select id="listPage" resultType="com.oxo.ball.bean.dao.BallGameLossPerCent">
+        select
+          l.id id,
+          l.game_id game_id, g.alliance_name alliance_name,g.main_name main_name,
+          g.guest_name guest_name,l.score_home score_home,l.score_away score_away,
+          l.game_type game_type,l.anti_per_cent anti_per_cent,g.created_at created_at,
+          g.game_status game_status,g.settlement_type settlement_type
+        from
+          ball_game_loss_per_cent l
+        left join
+          ball_game g
+        on
+          l.game_id = g.id
+        where
+          l.even = 1
+        <if test="query.id">
+            and l.id = #{query.id}
+        </if>
+        <if test="query.gameId">
+            and l.game_id = #{query.gameId}
+        </if>
+        <if test="query.gameStatus">
+            and g.game_status = #{query.gameStatus}
+        </if>
+        <if test="query.scoreHome">
+            and l.score_home = #{query.scoreHome}
+        </if>
+        <if test="query.scoreAway">
+            and l.score_away = #{query.scoreAway}
+        </if>
+        <if test="query.gameType">
+            and l.game_type = #{query.gameType}
+        </if>
+    </select>
+</mapper>

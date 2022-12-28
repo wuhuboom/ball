@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oxo.ball.mapper.BallBetMapper">
+    <select id="pages" parameterType="map" resultType="com.oxo.ball.bean.dao.BallBet">
+        select
+          b.*,g.alliance_name,g.main_logo,g.main_name,
+          g.guest_logo,g.guest_name
+        from ball_bet b left join ball_game g on b.game_id=g.id
+        <where>
+            b.player_id = #{query.playerId}
+            <if test="query.type">
+                and b.bet_type = #{query.type}
+            </if>
+            <if test="query.begin">
+                and b.created_at between #{query.begin} and #{query.end}
+            </if>
+        </where>
+        order by id desc
+    </select>
+    <select id="standard" parameterType="com.oxo.ball.bean.dto.req.report.ReportStandardRequest" resultType="int">
+        SELECT
+            count(t.player_id) count
+        FROM
+            (
+                SELECT
+                    b.player_id,
+                    sum(b.bet_money) bet_money
+                FROM
+                    ball_bet b
+                RIGHT join
+                   ball_player p on b.player_id = p.id and p.cumulative_top_up > #{query.recharge}
+                WHERE
+                    b.account_type = 2
+                AND b.status = 1
+                AND b.status_settlement = 1
+                AND b.created_at between #{query.begins} AND #{query.ends}
+                AND b.super_tree REGEXP #{query.regx}
+                GROUP BY
+                    b.player_id
+                HAVING
+                    bet_money > #{query.bets}
+            ) t
+    </select>
+    <select id="standard2" parameterType="com.oxo.ball.bean.dto.req.report.ReportStandardRequest" resultType="int">
+        SELECT
+            count(t.player_id) count
+        FROM
+            (
+                SELECT
+                    b.player_id,
+                    sum(b.bet_money) bet_money
+                FROM
+                    ball_bet b
+                WHERE
+                    b.account_type = 2
+                AND b.status = 1
+                AND b.status_settlement = 1
+                AND b.created_at between #{query.begins} AND #{query.ends}
+                AND b.super_tree REGEXP #{query.regx}
+                GROUP BY
+                    b.player_id
+                HAVING
+                    bet_money >= #{query.bets}
+            ) t
+    </select>
+
+    <select id="page_s" resultType="com.oxo.ball.bean.dao.BallBet" parameterType="com.oxo.ball.bean.dto.req.report.ReportStandardRequest">
+      select
+        *
+      from
+        ball_bet
+      where
+        account_type = 2
+      AND
+        status = 1
+      AND
+        status_settlement = 1
+      AND
+        created_at between #{query.begins} AND #{query.ends}
+      AND
+        super_tree REGEXP #{query.regx}
+    </select>
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oxo.ball.mapper.BallBankMapper">
+    <insert id="insertBatch" >
+        insert ignore into ball_bank (
+        bank_cname,
+        bank_code,
+        area_id
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.bankCname},#{item.bankCode},#{item.areaId})
+        </foreach>
+    </insert>
+</mapper>

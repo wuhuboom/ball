@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oxo.ball.mapper.BallGameMapper">
+    <select id="page" parameterType="map" resultType="com.oxo.ball.bean.dao.BallGame">
+        SELECT
+          g.*, sum(b.bet_money) bet_money,
+          count(DISTINCT b.player_id) bet_players,
+          count(b.id) bet_count
+        FROM
+          ball_bet b
+        LEFT JOIN ball_game g ON b.game_id = g.id
+        <where>
+            <if test="query.game_status">
+                and g.game_status = #{query.game_status}
+            </if>
+            <if test="query.game_status==null">
+                and g.game_status in (1, 2, 4)
+            </if>
+            <if test="query.id">
+                and g.id = #{query.id}
+            </if>
+        </where>
+        GROUP BY
+          b.game_id
+        order by g.start_time
+    </select>
+</mapper>

@@ -1,0 +1,1 @@
+update ball_logger_rebate set type=99 where type=5;
